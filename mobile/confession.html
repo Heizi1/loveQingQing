@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <title>给你的小心意</title>
+  <style>
+    :root {
+      --bg1: #ffafbd;
+      --bg2: #ffc3a0;
+      --text: #2a2a2a;
+      --white: #ffffff;
+      --primary: #ff6b6b;
+      --primary-dark: #e25555;
+      --shadow: rgba(0,0,0,0.1);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px circle at 50% -20%, var(--bg1), var(--bg2));
+      min-height: 100vh;
+    }
+    .wrap {
+      position: relative;
+      min-height: 100vh;
+      padding: 12vh 5vw calc(12vh + env(safe-area-inset-bottom));
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+    .card {
+      width: min(560px, 92vw);
+      border-radius: 18px;
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 12px 40px var(--shadow);
+      padding: clamp(18px, 5vw, 28px);
+      text-align: center;
+      transform: translateY(0);
+      transition: transform 320ms ease, opacity 320ms ease;
+    }
+    .title {
+      font-size: clamp(22px, 6vw, 28px);
+      line-height: 1.25;
+      font-weight: 700;
+      margin: 6px 0 10px;
+    }
+    .subtitle {
+      font-size: clamp(14px, 4vw, 16px);
+      color: #5a5a5a;
+      margin: 0 0 18px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: clamp(16px, 5vw, 18px);
+      font-weight: 700;
+      color: var(--white);
+      background: linear-gradient(135deg, var(--primary), #ff8e8e);
+      box-shadow: 0 8px 24px rgba(255, 107, 107, 0.35);
+      transition: transform 120ms ease, box-shadow 200ms ease, opacity 200ms ease;
+      cursor: pointer;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-ghost {
+      margin-top: 10px;
+      background: rgba(255,255,255,0.5);
+      color: var(--primary);
+      box-shadow: 0 6px 18px var(--shadow);
+      border: 2px solid rgba(255,255,255,0.8);
+    }
+    .msg {
+      min-height: 3.2em;
+      font-size: clamp(18px, 6vw, 22px);
+      line-height: 1.6;
+      font-weight: 600;
+      color: #c2465a;
+      letter-spacing: 0.5px;
+      word-break: break-word;
+    }
+    .progress {
+      height: 6px;
+      width: 100%;
+      background: rgba(0,0,0,0.06);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 14px 0 8px;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 240ms ease, transform 240ms ease;
+    }
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff6b6b, #ffd56b);
+      transition: width 260ms ease;
+    }
+    .final {
+      display: none;
+      font-size: clamp(20px, 7vw, 26px);
+      color: #d9486e;
+      font-weight: 800;
+    }
+    .hearts {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+    .heart {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: var(--primary);
+      transform: rotate(45deg);
+      border-radius: 4px 4px 0 0;
+      opacity: 0.9;
+      animation: float var(--d) linear var(--delay) both;
+    }
+    .heart::before,
+    .heart::after {
+      content: "";
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: inherit;
+      border-radius: 50%;
+    }
+    .heart::before { left: -7px; top: 0; }
+    .heart::after { top: -7px; left: 0; }
+    @keyframes float {
+      0% { transform: translateY(30vh) rotate(45deg) scale(0.8); opacity: 0; }
+      10% { opacity: 0.9; }
+      100% { transform: translateY(-110vh) rotate(45deg) scale(1.2); opacity: 0; }
+    }
+    .hidden { opacity: 0; pointer-events: none; transform: translateY(12px); }
+    .show { opacity: 1; pointer-events: auto; transform: translateY(0); }
+    @media (max-width: 380px) {
+      .card { border-radius: 16px; }
+      .btn { padding: 12px 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .heart { animation: none; }
+      .btn, .card { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hearts" id="hearts"></div>
+    <div class="card" id="screen-start">
+      <div class="title">给你的一封小情书</div>
+      <div class="subtitle">准备好了吗？点一点开始收取心动</div>
+      <button class="btn" id="btnStart">开启告白</button>
+      <button class="btn btn-ghost" id="btnCalm">我有点紧张</button>
+    </div>
+    <div class="card hidden" id="screen-play">
+      <div class="msg" id="msg"></div>
+      <div class="progress" id="progress"><div class="bar" id="bar"></div></div>
+      <button class="btn" id="btnNext">继续</button>
+    </div>
+    <div class="card hidden" id="screen-final">
+      <div class="final" id="final">我喜欢你，胜过今天的每一阵风。</div>
+      <button class="btn" id="btnYes">愿意</button>
+      <button class="btn btn-ghost" id="btnThink">再想想</button>
+    </div>
+  </div>
+  <script>
+    const lines = [
+      "看见你的时候，连风都变得温柔。",
+      "每一次想你，心里都会亮起一盏灯。",
+      "如果你愿意，我把我的今晚和明天都给你。",
+      "你是我见过最温柔的答案。"
+    ];
+    const start = document.getElementById("screen-start");
+    const play = document.getElementById("screen-play");
+    const final = document.getElementById("screen-final");
+    const msg = document.getElementById("msg");
+    const bar = document.getElementById("bar");
+    const progress = document.getElementById("progress");
+    const hearts = document.getElementById("hearts");
+    const btnStart = document.getElementById("btnStart");
+    const btnCalm = document.getElementById("btnCalm");
+    const btnNext = document.getElementById("btnNext");
+    const btnYes = document.getElementById("btnYes");
+    const btnThink = document.getElementById("btnThink");
+    let idx = 0;
+    let typing = false;
+    function toggle(a, b) {
+      a.classList.add("hidden");
+      a.classList.remove("show");
+      b.classList.remove("hidden");
+      b.classList.add("show");
+    }
+    function typewriter(text) {
+      typing = true;
+      msg.textContent = "";
+      progress.style.opacity = 1;
+      progress.style.transform = "translateY(0)";
+      bar.style.width = "0%";
+      const total = text.length;
+      let i = 0;
+      function step() {
+        if (i <= total) {
+          msg.textContent = text.slice(0, i);
+          bar.style.width = Math.min(100, Math.floor((i / total) * 100)) + "%";
+          i++;
+          setTimeout(step, 40);
+        } else {
+          typing = false;
+        }
+      }
+      step();
+    }
+    function shower(count) {
+      const w = window.innerWidth;
+      for (let i = 0; i < count; i++) {
+        const h = document.createElement("div");
+        h.className = "heart";
+        const x = Math.random() * w;
+        const d = 3000 + Math.random() * 4000;
+        const delay = Math.random() * 800;
+        h.style.left = x + "px";
+        h.style.setProperty("--d", d + "ms");
+        h.style.setProperty("--delay", delay + "ms");
+        hearts.appendChild(h);
+        setTimeout(() => hearts.removeChild(h), d + delay + 100);
+      }
+    }
+    btnStart.addEventListener("click", () => {
+      shower(18);
+      toggle(start, play);
+      idx = 0;
+      typewriter(lines[idx]);
+    });
+    btnCalm.addEventListener("click", () => {
+      shower(12);
+    });
+    btnNext.addEventListener("click", () => {
+      if (typing) return;
+      shower(14);
+      idx++;
+      if (idx < lines.length) {
+        typewriter(lines[idx]);
+      } else {
+        toggle(play, final);
+        document.getElementById("final").style.display = "block";
+        shower(24);
+      }
+    });
+    btnYes.addEventListener("click", () => {
+      shower(36);
+      btnYes.textContent = "抱抱你";
+    });
+    btnThink.addEventListener("click", () => {
+      const x = 12 + Math.random() * 18;
+      const y = 12 + Math.random() * 18;
+      btnThink.style.transform = `translate(${x}px, ${y}px)`;
+      shower(10);
+    });
+    let timer = null;
+    function autoShower() {
+      shower(6);
+      timer = setTimeout(autoShower, 1800);
+    }
+    autoShower();
+    window.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        clearTimeout(timer);
+      } else {
+        autoShower();
+      }
+    });
+  </script>
+</body>
+</html>
